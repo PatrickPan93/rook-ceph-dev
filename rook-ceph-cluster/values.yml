@@ -92,9 +92,9 @@ cephClusterSpec:
   dashboard:
     enabled: true
     # serve the dashboard under a subpath (useful when you are accessing the dashboard via a reverse proxy)
-    # urlPrefix: /ceph-dashboard
+    urlPrefix: /ceph-dashboard
     # serve the dashboard at the given port.
-    # port: 8443
+    port: 7000
 
   # Network configuration, see: https://github.com/rook/rook/blob/master/Documentation/ceph-cluster-crd.md#network-configuration-settings
   # network:
@@ -301,7 +301,7 @@ cephClusterSpec:
     #           osdsPerDevice: "5"
     #       - name: "/dev/disk/by-id/ata-ST4000DM004-XXXX" # devices can be specified using full udev paths
     #     config: # configuration can be specified at the node level which overrides the cluster level config
-    #  - name: "k8s-node02"
+      - name: "k8s-node02"
     #    deviceFilter: "^sd."
 
   # The section for configuring management of daemon disruptions during upgrade or fencing.
@@ -346,14 +346,14 @@ cephClusterSpec:
         disabled: false
 
 ingress:
-  dashboard: {}
-    # annotations:
-    #   kubernetes.io/ingress.class: nginx
-    #   external-dns.alpha.kubernetes.io/hostname: example.com
-    #   nginx.ingress.kubernetes.io/rewrite-target: /ceph-dashboard/$2
-    # host:
-    #   name: example.com
-    #   path: "/ceph-dashboard(/|$)(.*)"
+  dashboard:
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      external-dns.alpha.kubernetes.io/hostname: ceph.devops.com
+      nginx.ingress.kubernetes.io/rewrite-target: /ceph-dashboard/$2
+    host:
+      name: ceph.devops.com
+      path: "/ceph-dashboard(/|$)(.*)"
     # tls:
 
 cephBlockPools:
@@ -413,8 +413,38 @@ cephFileSystems:
           replicated:
             size: 3
       metadataServer:
+        # mds master数量
         activeCount: 1
         activeStandby: true
+        placement:
+          nodeAffinity: #node亲和力调度算法 
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: ceph-mds
+                  operator: In
+                  values:
+                  - enabled
+          #pods反亲和力调度
+          podAntiAffinity:
+            #requiredDuringSchedulingIgnoredDuringExecution:
+            #- labelSelector:
+            #    matchExpressions:
+            #    - key: app
+            #      operator: In
+            #      values:
+            #       - rook-ceph-mds
+            #  topologyKey: kubernetes.io/hostname
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - rook-ceph-mds
+                topologyKey: kubernetes.io/hostname
     storageClass:
       enabled: true
       isDefault: false
