@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-pod
+  namespace:
+spec:
+  containers:
+  - name: mycontainer
+    image: s3cmd/s3cmd:latest
+    command: ['/bin/sh','-c','sleep 36000']
+    envFrom:
+    - configMapRef:
+        name: my-bucket
+    - secretRef:
+        name: my-bucket

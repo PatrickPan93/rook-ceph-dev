@@ -1,0 +1,20 @@
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: my-bucket
+  namespace: default
+spec:
+  # bucketName:
+  generateBucketName: my-bucket
+  storageClassName: ceph-bucket
+  additionalConfig:
+    maxObjects: "1000"
+    maxSize: "2G"
+# name of the ObjectBucketClaim. This name becomes the name of the Secret and ConfigMap.
+# namespace(optional) of the ObjectBucketClaim, which is also the namespace of the ConfigMap and Secret.
+# bucketName name of the bucket. Not recommended for new buckets since names must be unique within an entire object store.
+# generateBucketName value becomes the prefix for a randomly generated name, if supplied then bucketName must be empty. If both bucketName and generateBucketName are supplied then BucketName has precedence and GenerateBucketName is ignored. If both bucketName and generateBucketName are blank or omitted then the storage class is expected to contain the name of an existing bucket. It's an error if all three bucket related names are blank or omitted.
+# storageClassName which defines the StorageClass which contains the names of the bucket provisioner, the object-store and specifies the bucket retention policy.
+# additionalConfig is an optional list of key-value pairs used to define attributes specific to the bucket being provisioned by this OBC. This information is typically tuned to a particular bucket provisioner and may limit application portability. Options supported:
+# maxObjects: The maximum number of objects in the bucket
+# maxSize: The maximum size of the bucket, please note minimum recommended value is 4K.

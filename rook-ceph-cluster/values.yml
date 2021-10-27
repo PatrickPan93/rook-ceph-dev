@@ -482,7 +482,36 @@ cephObjectStores:
         port: 80
         # securePort: 443
         # sslCertificateRef:
-        instances: 1
+        instances: 2
+        placement:
+          nodeAffinity: #node亲和力调度算法 
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: ceph-rgw
+                  operator: In
+                  values:
+                  - enabled
+          #pods反亲和力调度
+          podAntiAffinity:
+            #requiredDuringSchedulingIgnoredDuringExecution:
+            #- labelSelector:
+            #    matchExpressions:
+            #    - key: app
+            #      operator: In
+            #      values:
+            #       - rook-ceph-rgw
+            #  topologyKey: kubernetes.io/hostname
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - rook-ceph-rgw
+                topologyKey: kubernetes.io/hostname
       healthCheck:
         bucket:
           interval: 60s
